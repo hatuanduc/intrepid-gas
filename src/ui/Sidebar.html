@@ -4,61 +4,120 @@
   <base target="_top">
   <meta charset="UTF-8">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
+    html, body {
+      height: 100%;
       font-family: 'Segoe UI', Arial, sans-serif;
       font-size: 13px;
       background: #f8f9fa;
       color: #202124;
     }
 
+    body { display: flex; flex-direction: column; }
+
+    /* ── App header ─────────────────────────────── */
     .app-header {
       background: #1a73e8;
       color: white;
-      padding: 10px 14px;
+      padding: 11px 14px;
       font-size: 14px;
-      font-weight: 600;
-      letter-spacing: 0.3px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      flex-shrink: 0;
     }
 
-    /* Tab bar */
-    .tab-bar {
+    /* ── Screen system ──────────────────────────── */
+    .screen { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+    .screen.active { display: flex; }
+
+    .screen-nav {
       display: flex;
-      background: #fff;
-      border-bottom: 2px solid #e0e0e0;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      background: white;
+      border-bottom: 1px solid #e0e0e0;
+      flex-shrink: 0;
     }
-    .tab-btn {
-      flex: 1;
-      padding: 8px 4px;
+    .btn-back {
+      background: none;
       border: none;
-      background: transparent;
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+      color: #1a73e8;
+      padding: 0 2px;
+    }
+    .screen-nav-title { font-size: 13px; font-weight: 600; }
+
+    .screen-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+    }
+
+    /* ── Home: feature cards ─────────────────────── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #5f6368;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 8px;
+    }
+
+    .feature-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: white;
+      border: 1px solid #dadce0;
+      border-radius: 8px;
+      padding: 12px 12px 12px 14px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: box-shadow 0.15s, border-color 0.15s;
+      text-decoration: none;
+      color: inherit;
+    }
+    .feature-card:hover {
+      box-shadow: 0 2px 8px rgba(26,115,232,0.15);
+      border-color: #1a73e8;
+    }
+    .feature-icon { font-size: 22px; flex-shrink: 0; }
+    .feature-info { flex: 1; }
+    .feature-title { font-size: 13px; font-weight: 600; }
+    .feature-desc  { font-size: 11px; color: #5f6368; margin-top: 2px; }
+    .feature-arrow { color: #9aa0a6; font-size: 20px; }
+
+    .home-footer {
+      padding: 10px 14px;
+      border-top: 1px solid #e0e0e0;
+      background: white;
+      flex-shrink: 0;
+    }
+    .btn-settings-home {
+      width: 100%;
+      background: none;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      color: #5f6368;
+      padding: 8px 12px;
       cursor: pointer;
       font-size: 12px;
-      color: #5f6368;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -2px;
-      transition: color 0.15s;
-    }
-    .tab-btn.active {
-      color: #1a73e8;
-      border-bottom-color: #1a73e8;
       font-weight: 600;
     }
-    .tab-btn:hover:not(.active) { background: #f1f3f4; }
+    .btn-settings-home:hover { background: #f1f3f4; }
 
-    /* Tab content */
-    .tab-pane { display: none; padding: 14px; }
-    .tab-pane.active { display: block; }
-
-    /* Form elements */
+    /* ── Form ────────────────────────────────────── */
     label {
       display: block;
       font-size: 11px;
       font-weight: 600;
       color: #5f6368;
       margin-bottom: 4px;
-      margin-top: 12px;
+      margin-top: 13px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
@@ -71,17 +130,18 @@
       border-radius: 4px;
       font-size: 13px;
       outline: none;
+      background: white;
       transition: border-color 0.15s;
     }
     input:focus { border-color: #1a73e8; }
 
-    .row2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
-    /* Buttons */
+    .hint { font-size: 11px; color: #80868b; margin-top: 4px; line-height: 1.5; }
+
+    .divider { border: none; border-top: 1px solid #e0e0e0; margin: 14px 0 2px; }
+
+    /* ── Buttons ──────────────────────────────────── */
     .btn {
       width: 100%;
       padding: 9px;
@@ -90,27 +150,27 @@
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
-      margin-top: 14px;
+      margin-top: 10px;
       transition: background 0.15s, opacity 0.15s;
     }
     .btn-primary { background: #1a73e8; color: white; }
-    .btn-primary:hover { background: #1557b0; }
-    .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
-    .btn-secondary { background: #f1f3f4; color: #3c4043; margin-top: 8px; }
-    .btn-secondary:hover { background: #e8eaed; }
+    .btn-primary:hover:not(:disabled) { background: #1557b0; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-ghost { background: #f1f3f4; color: #3c4043; margin-top: 6px; }
+    .btn-ghost:hover { background: #e8eaed; }
 
-    /* Log area */
-    .log-header {
+    /* ── Log box ──────────────────────────────────── */
+    .log-label {
       font-size: 11px;
       font-weight: 600;
       color: #5f6368;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-top: 16px;
-      margin-bottom: 6px;
+      margin-top: 14px;
+      margin-bottom: 5px;
     }
-    #log {
-      background: #fff;
+    .log-box {
+      background: white;
       border: 1px solid #dadce0;
       border-radius: 4px;
       padding: 8px 10px;
@@ -118,238 +178,333 @@
       min-height: 80px;
       max-height: 200px;
       overflow-y: auto;
-      color: #3c4043;
-      line-height: 1.7;
+      line-height: 1.8;
     }
     .log-ok   { color: #137333; }
     .log-err  { color: #c5221f; }
     .log-info { color: #1a73e8; }
-
-    .divider { border: none; border-top: 1px solid #e0e0e0; margin: 14px 0 4px; }
-
-    .hint {
-      font-size: 11px;
-      color: #80868b;
-      margin-top: 4px;
-    }
+    .log-warn { color: #e37400; }
   </style>
 </head>
 <body>
 
-<div class="app-header">Intrepid GAS Tools</div>
+<div class="app-header">Intrepid Tools</div>
 
-<!-- Tab bar -->
-<div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('brand-split', this)">Brand Split</button>
-  <button class="tab-btn"        onclick="switchTab('settings', this)">Settings</button>
+<!-- ════════════════════════════════════════════════ -->
+<!-- SCREEN: Home                                      -->
+<!-- ════════════════════════════════════════════════ -->
+<div id="screen-home" class="screen active">
+  <div class="screen-body">
+
+    <div class="section-label">Chức năng</div>
+
+    <div class="feature-card" onclick="nav('brand-split')">
+      <div class="feature-icon">📊</div>
+      <div class="feature-info">
+        <div class="feature-title">Brand Split</div>
+        <div class="feature-desc">Tách sheet riêng cho từng brand từ Summary</div>
+      </div>
+      <div class="feature-arrow">›</div>
+    </div>
+
+    <!--
+      Thêm feature mới: copy block .feature-card ở trên,
+      đổi onclick="nav('ten-feature')" và tạo SCREEN tương ứng.
+    -->
+
+  </div>
+  <div class="home-footer">
+    <button class="btn-settings-home" onclick="nav('settings')">⚙ Settings</button>
+  </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- TAB: Brand Split                                              -->
-<!-- ============================================================ -->
-<div id="pane-brand-split" class="tab-pane active">
+<!-- ════════════════════════════════════════════════ -->
+<!-- SCREEN: Brand Split                               -->
+<!-- ════════════════════════════════════════════════ -->
+<div id="screen-brand-split" class="screen">
+  <div class="screen-nav">
+    <button class="btn-back" onclick="nav('home')" title="Quay lại">‹</button>
+    <span class="screen-nav-title">Brand Split</span>
+  </div>
+  <div class="screen-body">
 
-  <label>Spreadsheet URL</label>
-  <input type="text" id="url" placeholder="https://docs.google.com/spreadsheets/d/...">
-  <p class="hint">Nhập link Google Sheets chứa sheet Summary.</p>
+    <label>Spreadsheet URL</label>
+    <input type="text" id="bs-url" placeholder="https://docs.google.com/spreadsheets/d/...">
+    <p class="hint">Link Google Sheets chứa sheet Summary.</p>
 
-  <button class="btn btn-primary" id="btn-process" onclick="runProcess()">Xử lý</button>
+    <button class="btn btn-primary" id="bs-btn" onclick="bs_start()">Xử lý</button>
 
-  <div class="log-header">Log</div>
-  <div id="log"><span class="log-info">Sẵn sàng.</span></div>
+    <div class="log-label">Log</div>
+    <div class="log-box" id="bs-log">
+      <span class="log-info">Sẵn sàng.</span>
+    </div>
+
+  </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- TAB: Settings                                                 -->
-<!-- ============================================================ -->
-<div id="pane-settings" class="tab-pane">
-
-  <label>Tên sheet Summary</label>
-  <input type="text" id="cfg-summarySheetName" placeholder="Summary">
-
-  <div class="row2">
-    <div>
-      <label>Header row</label>
-      <input type="number" id="cfg-headerRow" placeholder="4" min="1">
-    </div>
-    <div>
-      <label>Data start row</label>
-      <input type="number" id="cfg-dataStartRow" placeholder="5" min="1">
-    </div>
+<!-- ════════════════════════════════════════════════ -->
+<!-- SCREEN: Settings                                  -->
+<!-- ════════════════════════════════════════════════ -->
+<div id="screen-settings" class="screen">
+  <div class="screen-nav">
+    <button class="btn-back" onclick="nav('home')" title="Quay lại">‹</button>
+    <span class="screen-nav-title">Settings</span>
   </div>
+  <div class="screen-body">
 
-  <hr class="divider">
+    <label>Tên sheet Summary</label>
+    <input type="text" id="cfg-summarySheetName" placeholder="Summary">
 
-  <div class="row2">
-    <div>
-      <label>Cột Brand (E=5)</label>
-      <input type="number" id="cfg-colBrand" placeholder="5" min="1">
+    <div class="row2">
+      <div>
+        <label>Header row</label>
+        <input type="number" id="cfg-headerRow" placeholder="5" min="1">
+      </div>
+      <div>
+        <label>Data start row</label>
+        <input type="number" id="cfg-dataStartRow" placeholder="6" min="1">
+      </div>
     </div>
-    <div>
-      <label>Cột Company (C=3)</label>
-      <input type="number" id="cfg-colCompany" placeholder="3" min="1">
+
+    <hr class="divider">
+
+    <div class="row2">
+      <div>
+        <label>Cột Brand (E=5)</label>
+        <input type="number" id="cfg-colBrand" placeholder="5" min="1">
+      </div>
+      <div>
+        <label>Cột Company (C=3)</label>
+        <input type="number" id="cfg-colCompany" placeholder="3" min="1">
+      </div>
     </div>
+
+    <label>Cột lọc brand (brandFilterCol)</label>
+    <input type="number" id="cfg-brandFilterCol" placeholder="3" min="0">
+    <p class="hint">Dòng trống ở cột này sẽ bị skip — loại bỏ header nhóm như "INT", "Retails Model"…<br>Đặt 0 = không lọc, chỉ dùng cột Brand.</p>
+
+    <div class="row2">
+      <div>
+        <label>Summary từ (AE=31)</label>
+        <input type="number" id="cfg-colSummaryStart" placeholder="31" min="1">
+      </div>
+      <div>
+        <label>Summary đến (AR=44)</label>
+        <input type="number" id="cfg-colSummaryEnd" placeholder="44" min="1">
+      </div>
+    </div>
+
+    <div class="row2">
+      <div>
+        <label>Spending từ (AS=45)</label>
+        <input type="number" id="cfg-colSpendStart" placeholder="45" min="1">
+      </div>
+      <div>
+        <label>Spending đến (BL=64)</label>
+        <input type="number" id="cfg-colSpendEnd" placeholder="64" min="1">
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="row2">
+      <div>
+        <label>Fee non-TikTok (%)</label>
+        <input type="number" id="cfg-feeNonTiktok" placeholder="9" min="0" max="100">
+      </div>
+      <div>
+        <label>Fee TikTok (%)</label>
+        <input type="number" id="cfg-feeTiktok" placeholder="7" min="0" max="100">
+      </div>
+    </div>
+
+    <label>TikTok keywords (cách nhau bằng dấu phẩy)</label>
+    <input type="text" id="cfg-tiktokKeywords" placeholder="tiktok,tik tok">
+    <p class="hint">Cột spending nào có tên chứa keyword này sẽ thuộc nhóm TikTok.</p>
+
+    <button class="btn btn-primary" onclick="cfg_save()">Lưu Settings</button>
+    <button class="btn btn-ghost"   onclick="cfg_reset()">Reset về mặc định</button>
+    <div id="cfg-status" style="margin-top:8px; font-size:12px;"></div>
+
   </div>
-
-  <label>Cột lọc brand thật (brandFilterCol)</label>
-  <input type="number" id="cfg-brandFilterCol" placeholder="3" min="0">
-  <p class="hint">Dòng nào có cột này TRỐNG sẽ bị bỏ qua (dành cho header-nhóm như "INT", "Retails Model"). Đặt 0 để dùng cột Brand làm filter.</p>
-
-  <div class="row2">
-    <div>
-      <label>Summary từ cột (AE=31)</label>
-      <input type="number" id="cfg-colSummaryStart" placeholder="31" min="1">
-    </div>
-    <div>
-      <label>Summary đến cột (AR=44)</label>
-      <input type="number" id="cfg-colSummaryEnd" placeholder="44" min="1">
-    </div>
-  </div>
-
-  <div class="row2">
-    <div>
-      <label>Spending từ cột (AS=45)</label>
-      <input type="number" id="cfg-colSpendStart" placeholder="45" min="1">
-    </div>
-    <div>
-      <label>Spending đến cột (BL=64)</label>
-      <input type="number" id="cfg-colSpendEnd" placeholder="64" min="1">
-    </div>
-  </div>
-
-  <hr class="divider">
-
-  <div class="row2">
-    <div>
-      <label>Fee non-TikTok (%)</label>
-      <input type="number" id="cfg-feeNonTiktok" placeholder="9" min="0" max="100">
-    </div>
-    <div>
-      <label>Fee TikTok (%)</label>
-      <input type="number" id="cfg-feeTiktok" placeholder="7" min="0" max="100">
-    </div>
-  </div>
-
-  <label>TikTok keywords (phân cách bởi dấu phẩy)</label>
-  <input type="text" id="cfg-tiktokKeywords" placeholder="tiktok,tik tok">
-  <p class="hint">Dùng để phân biệt cột TikTok trong spending headers.</p>
-
-  <button class="btn btn-primary" onclick="saveConfig()">Lưu Settings</button>
-  <button class="btn btn-secondary" onclick="resetConfig()">Reset về mặc định</button>
-  <div id="cfg-status" style="margin-top:8px; font-size:12px;"></div>
 </div>
 
 <script>
-  // ── Tab switching ──────────────────────────────────────────────
-  function switchTab(name, btn) {
-    document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
-    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
-    document.getElementById('pane-' + name).classList.add('active');
-    btn.classList.add('active');
+// ── Navigation ──────────────────────────────────────────────────────────────
+var currentScreen = 'home';
+
+function nav(screenName) {
+  document.getElementById('screen-' + currentScreen).classList.remove('active');
+  document.getElementById('screen-' + screenName).classList.add('active');
+  currentScreen = screenName;
+  if (screenName === 'settings') cfg_load();
+}
+
+// ── Brand Split ─────────────────────────────────────────────────────────────
+var bsBrands = [];
+var bsIndex  = 0;
+var bsUrl    = '';
+
+function bs_start() {
+  bsUrl = document.getElementById('bs-url').value.trim();
+  if (!bsUrl) { bs_setLog('Vui lòng nhập Spreadsheet URL.', 'log-err'); return; }
+
+  bs_setBtn(true, 'Đang lấy danh sách...');
+  bs_setLog('⏳ Đang đọc danh sách brand...', 'log-info');
+
+  google.script.run
+    .withSuccessHandler(bs_onList)
+    .withFailureHandler(bs_onErr)
+    .getBrandList(bsUrl);
+}
+
+function bs_onList(result) {
+  if (!result.ok) { bs_reset(); bs_setLog('❌ ' + result.error, 'log-err'); return; }
+
+  bsBrands = result.brands;
+  if (bsBrands.length === 0) {
+    bs_reset();
+    bs_setLog('Không tìm thấy brand nào. Kiểm tra lại cấu hình cột Brand và Header row trong Settings.', 'log-warn');
+    return;
   }
 
-  // ── Log helpers ────────────────────────────────────────────────
-  var logEl = document.getElementById('log');
-
-  function log(msg, cls) {
-    var span = document.createElement('span');
-    span.className = cls || '';
-    span.textContent = msg;
-    logEl.innerHTML = '';
-    logEl.appendChild(span);
+  // Xác nhận nếu có sheet cũ
+  var existing = result.existingSheets;
+  if (existing.length > 0) {
+    var msg = 'Các sheet sau đã tồn tại và sẽ bị xóa, tạo lại:\n\n'
+            + existing.join('\n')
+            + '\n\nBạn có muốn tiếp tục không?';
+    if (!confirm(msg)) {
+      bs_reset();
+      bs_setLog('Đã hủy.', 'log-warn');
+      return;
+    }
   }
 
-  function logAppend(msg, cls) {
-    var div = document.createElement('div');
-    div.className = cls || '';
-    div.textContent = msg;
-    logEl.appendChild(div);
-    logEl.scrollTop = logEl.scrollHeight;
+  // Bắt đầu xử lý từng brand
+  document.getElementById('bs-log').innerHTML = '';
+  bsIndex = 0;
+  bs_next();
+}
+
+function bs_next() {
+  if (bsIndex >= bsBrands.length) {
+    bs_reset();
+    bs_log('✅ Hoàn thành — ' + bsBrands.length + ' brand(s).', 'log-ok');
+    return;
   }
 
-  // ── Brand Split: Xử lý ────────────────────────────────────────
-  function runProcess() {
-    var url = document.getElementById('url').value.trim();
-    if (!url) { log('Vui lòng nhập Spreadsheet URL.', 'log-err'); return; }
+  var brand = bsBrands[bsIndex];
+  bs_setBtn(true, 'Xử lý (' + (bsIndex + 1) + '/' + bsBrands.length + ')...');
 
-    var btn = document.getElementById('btn-process');
-    btn.disabled = true;
-    btn.textContent = 'Đang xử lý...';
-    log('Đang xử lý...', 'log-info');
+  // Tạo dòng log tạm cho brand này
+  var logId = 'bs-row-' + bsIndex;
+  var div = document.createElement('div');
+  div.id = logId;
+  div.className = 'log-info';
+  div.textContent = '⏳ ' + brand + '...';
+  document.getElementById('bs-log').appendChild(div);
+  document.getElementById('bs-log').scrollTop = 9999;
 
-    google.script.run
-      .withSuccessHandler(function(result) {
-        btn.disabled = false;
-        btn.textContent = 'Xử lý';
-        if (result.ok) {
-          logEl.innerHTML = '';
-          result.brands.forEach(function(b) {
-            logAppend('✅ ' + b, 'log-ok');
-          });
-          logAppend('Hoàn thành — ' + result.brands.length + ' brand(s).', 'log-ok');
-        } else {
-          log('❌ ' + result.error, 'log-err');
-        }
-      })
-      .withFailureHandler(function(err) {
-        btn.disabled = false;
-        btn.textContent = 'Xử lý';
-        log('❌ ' + err.message, 'log-err');
-      })
-      .processSpreadsheet(url);
-  }
+  var capturedIdx = bsIndex;
+  google.script.run
+    .withSuccessHandler(function(r) {
+      var el = document.getElementById('bs-row-' + capturedIdx);
+      if (r.ok) {
+        el.textContent = '✅ ' + bsBrands[capturedIdx];
+        el.className = 'log-ok';
+      } else {
+        el.textContent = '❌ ' + bsBrands[capturedIdx] + ': ' + r.error;
+        el.className = 'log-err';
+      }
+      document.getElementById('bs-log').scrollTop = 9999;
+      bsIndex++;
+      bs_next();
+    })
+    .withFailureHandler(function(err) {
+      var el = document.getElementById('bs-row-' + capturedIdx);
+      el.textContent = '❌ ' + bsBrands[capturedIdx] + ': ' + err.message;
+      el.className = 'log-err';
+      document.getElementById('bs-log').scrollTop = 9999;
+      bsIndex++;
+      bs_next();
+    })
+    .processSingleBrand(bsUrl, brand);
+}
 
-  // ── Settings: Load ─────────────────────────────────────────────
-  function loadConfig() {
-    google.script.run
-      .withSuccessHandler(function(raw) {
-        for (var key in raw) {
-          var el = document.getElementById('cfg-' + key);
-          if (el) el.value = raw[key];
-        }
-      })
-      .loadSettings();
-  }
+function bs_onErr(err) {
+  bs_reset();
+  bs_setLog('❌ ' + err.message, 'log-err');
+}
 
-  // ── Settings: Save ─────────────────────────────────────────────
-  function saveConfig() {
-    var keys = [
-      'summarySheetName','headerRow','dataStartRow',
-      'colBrand','colCompany','brandFilterCol',
-      'colSummaryStart','colSummaryEnd',
-      'colSpendStart','colSpendEnd',
-      'feeNonTiktok','feeTiktok','tiktokKeywords'
-    ];
-    var settings = {};
-    keys.forEach(function(k) {
-      var el = document.getElementById('cfg-' + k);
-      if (el) settings[k] = el.value.trim();
-    });
+function bs_reset() {
+  bs_setBtn(false, 'Xử lý');
+}
 
-    document.getElementById('cfg-status').textContent = 'Đang lưu...';
-    google.script.run
-      .withSuccessHandler(function() {
-        document.getElementById('cfg-status').textContent = '✅ Đã lưu settings.';
-      })
-      .withFailureHandler(function(err) {
-        document.getElementById('cfg-status').textContent = '❌ ' + err.message;
-      })
-      .saveSettings(settings);
-  }
+function bs_setBtn(disabled, text) {
+  var btn = document.getElementById('bs-btn');
+  btn.disabled = disabled;
+  btn.textContent = text;
+}
 
-  // ── Settings: Reset ────────────────────────────────────────────
-  function resetConfig() {
-    if (!confirm('Reset tất cả settings về mặc định?')) return;
-    google.script.run
-      .withSuccessHandler(function() {
-        document.getElementById('cfg-status').textContent = '✅ Đã reset. Đang tải lại...';
-        loadConfig();
-      })
-      .resetSettings();
-  }
+function bs_setLog(msg, cls) {
+  document.getElementById('bs-log').innerHTML = '<span class="' + (cls || '') + '">' + msg + '</span>';
+}
 
-  // Load settings khi mở sidebar
-  loadConfig();
+function bs_log(msg, cls) {
+  var div = document.createElement('div');
+  div.className = cls || '';
+  div.textContent = msg;
+  document.getElementById('bs-log').appendChild(div);
+  document.getElementById('bs-log').scrollTop = 9999;
+}
+
+// ── Settings ────────────────────────────────────────────────────────────────
+var CFG_KEYS = [
+  'summarySheetName', 'headerRow', 'dataStartRow',
+  'colBrand', 'colCompany', 'brandFilterCol',
+  'colSummaryStart', 'colSummaryEnd',
+  'colSpendStart', 'colSpendEnd',
+  'feeNonTiktok', 'feeTiktok', 'tiktokKeywords'
+];
+
+function cfg_load() {
+  google.script.run
+    .withSuccessHandler(function(raw) {
+      CFG_KEYS.forEach(function(k) {
+        var el = document.getElementById('cfg-' + k);
+        if (el && raw[k] !== undefined) el.value = raw[k];
+      });
+    })
+    .loadSettings();
+}
+
+function cfg_save() {
+  var settings = {};
+  CFG_KEYS.forEach(function(k) {
+    var el = document.getElementById('cfg-' + k);
+    if (el) settings[k] = el.value.trim();
+  });
+  document.getElementById('cfg-status').textContent = 'Đang lưu...';
+  google.script.run
+    .withSuccessHandler(function() {
+      document.getElementById('cfg-status').textContent = '✅ Đã lưu.';
+    })
+    .withFailureHandler(function(err) {
+      document.getElementById('cfg-status').textContent = '❌ ' + err.message;
+    })
+    .saveSettings(settings);
+}
+
+function cfg_reset() {
+  if (!confirm('Reset tất cả settings về mặc định?')) return;
+  google.script.run
+    .withSuccessHandler(function() {
+      document.getElementById('cfg-status').textContent = '✅ Đã reset.';
+      cfg_load();
+    })
+    .resetSettings();
+}
 </script>
 </body>
 </html>

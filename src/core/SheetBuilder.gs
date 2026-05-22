@@ -35,8 +35,7 @@ function SheetBuilder_build(ss, brandName, companyName, brandRows, spendHeaders,
   // Block 1: non-TikTok spending
   currentRow = SheetBuilder_buildSpendingBlock(
     sheet, currentRow, companyName, brandRows, nonTiktokCols,
-    'From AS->BL (trừ tiktok header)', cfg.feeNonTiktok,
-    true  // showMainTitle
+    cfg.feeNonTiktok, true   // showMainTitle
   );
 
   currentRow++; // blank row giữa 2 block
@@ -44,8 +43,7 @@ function SheetBuilder_build(ss, brandName, companyName, brandRows, spendHeaders,
   // Block 2: TikTok only
   currentRow = SheetBuilder_buildSpendingBlock(
     sheet, currentRow, null, brandRows, tiktokCols,
-    'From AS->BL (only tiktok header)', cfg.feeTiktok,
-    false // không lặp lại main title
+    cfg.feeTiktok, false     // không lặp lại main title
   );
 
   currentRow++; // blank row
@@ -63,10 +61,13 @@ function SheetBuilder_build(ss, brandName, companyName, brandRows, spendHeaders,
 // Block 1 & 2: spending details
 // ---------------------------------------------------------------------------
 
-function SheetBuilder_buildSpendingBlock(sheet, startRow, companyName, brandRows, cols, subtitle, feeRate, showMainTitle) {
+function SheetBuilder_buildSpendingBlock(sheet, startRow, companyName, brandRows, cols, feeRate, showMainTitle) {
   var row = startRow;
 
-  // --- Dòng title (chỉ ở Block 1) ---
+  // Bỏ qua block nếu không có cột nào
+  if (cols.length === 0) return row;
+
+  // --- Dòng title + Customer Name (chỉ Block 1) ---
   if (showMainTitle) {
     sheet.getRange(row, 1).setValue('Marketing spending details').setFontWeight('bold').setFontSize(11);
     if (companyName) {
@@ -76,58 +77,45 @@ function SheetBuilder_buildSpendingBlock(sheet, startRow, companyName, brandRows
     row++;
   }
 
-  // --- Dòng subtitle (cyan) ---
-  var subtitleRange = sheet.getRange(row, 1, 1, Math.max(cols.length + 1, 5));
-  subtitleRange.merge();
-  sheet.getRange(row, 1).setValue(subtitle).setBackground(COLOR_CYAN).setFontWeight('bold');
+  // --- Dòng header cột ---
+  var headerValues = cols.map(function(h) { return h.name; });
+  headerValues.push('Total');
+  var headerRange = sheet.getRange(row, 1, 1, headerValues.length);
+  headerRange.setValues([headerValues]);
+
+  if (showMainTitle) {
+    headerRange.setBackground(COLOR_PEACH).setFontWeight('bold').setWrap(true);
+  } else {
+    headerRange.setBackground(COLOR_BLACK).setFontColor(COLOR_WHITE).setFontWeight('bold').setWrap(true);
+  }
   row++;
 
-  // --- Dòng header ---
-  if (cols.length > 0) {
-    var headerValues = cols.map(function(h) { return h.name; });
-    headerValues.push('Total');
-    var headerRange = sheet.getRange(row, 1, 1, headerValues.length);
-    headerRange.setValues([headerValues]);
-
-    if (showMainTitle) {
-      // Block 1: peach header
-      headerRange.setBackground(COLOR_PEACH).setFontWeight('bold').setWrap(true);
-    } else {
-      // Block 2: black header, white text
-      headerRange.setBackground(COLOR_BLACK).setFontColor(COLOR_WHITE).setFontWeight('bold').setWrap(true);
-    }
+  // --- Data rows ---
+  var blockTotal = 0;
+  brandRows.forEach(function(brandRow) {
+    var values = cols.map(function(h) { return brandRow.data[h.col - 1] || ''; });
+    var rowTotal = Helpers_sum(values);
+    blockTotal += rowTotal;
+    values.push(rowTotal);
+    sheet.getRange(row, 1, 1, values.length).setValues([values]).setNumberFormat('#,##0.00');
     row++;
+  });
 
-    // --- Data rows ---
-    var blockTotal = 0;
-    brandRows.forEach(function(brandRow) {
-      var values = cols.map(function(h) { return brandRow.data[h.col - 1] || ''; });
-      var rowTotal = Helpers_sum(values);
-      blockTotal += rowTotal;
-      values.push(rowTotal);
-      var dataRange = sheet.getRange(row, 1, 1, values.length);
-      dataRange.setValues([values]);
-      // Format số có dấu phẩy
-      sheet.getRange(row, 1, 1, values.length).setNumberFormat('#,##0.00');
-      row++;
-    });
+  row++; // blank row trước fee
 
-    row++; // blank row trước fee
+  // --- Marketing management fee ---
+  var feeAmount  = blockTotal * feeRate;
+  var feePercent = Math.round(feeRate * 100) + '%';
 
-    // --- Marketing management fee rows ---
-    var feeAmount = blockTotal * feeRate;
-    var feePercent = Math.round(feeRate * 100) + '%';
+  sheet.getRange(row, 1).setValue('Marketing management fee').setFontWeight('bold');
+  sheet.getRange(row, 4).setValue(feePercent).setFontWeight('bold');
+  sheet.getRange(row, 5).setValue('of total spending');
+  row++;
 
-    sheet.getRange(row, 1).setValue('Marketing management fee').setFontWeight('bold');
-    sheet.getRange(row, 4).setValue(feePercent).setFontWeight('bold');
-    sheet.getRange(row, 5).setValue('of total spending');
-    row++;
-
-    sheet.getRange(row, 1).setValue('Marketing management fee').setFontWeight('bold');
-    sheet.getRange(row, 4).setValue(feeAmount).setNumberFormat('#,##0.00');
-    sheet.getRange(row, 5).setValue('THB (before VAT)');
-    row++;
-  }
+  sheet.getRange(row, 1).setValue('Marketing management fee').setFontWeight('bold');
+  sheet.getRange(row, 4).setValue(feeAmount).setNumberFormat('#,##0.00');
+  sheet.getRange(row, 5).setValue('THB (before VAT)');
+  row++;
 
   return row;
 }
