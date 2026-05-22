@@ -162,6 +162,34 @@
     .log-err  { color: #c5221f; }
     .log-info { color: #1a73e8; }
     .log-warn { color: #e37400; }
+
+    /* ── Custom modal ────────────────────────── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.35); z-index: 999;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.visible { display: flex; }
+    .modal-box {
+      background: white; border-radius: 8px; padding: 20px 18px 16px;
+      width: 260px; box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    }
+    .modal-title {
+      font-size: 13px; font-weight: 700; color: #202124; margin-bottom: 10px;
+    }
+    .modal-msg {
+      font-size: 12px; color: #3c4043; line-height: 1.6; white-space: pre-wrap;
+      margin-bottom: 16px;
+    }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .modal-btn {
+      padding: 7px 16px; border: none; border-radius: 4px;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .modal-btn-cancel { background: #f1f3f4; color: #3c4043; }
+    .modal-btn-cancel:hover { background: #e8eaed; }
+    .modal-btn-ok { background: #1a73e8; color: white; }
+    .modal-btn-ok:hover { background: #1557b0; }
   </style>
 </head>
 <body>
@@ -379,7 +407,39 @@
   </div>
 -->
 
+<!-- ── Custom modal ──────────────────────────────────────────────────────── -->
+<div id="app-modal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title">Thông báo</div>
+    <div class="modal-msg"   id="modal-msg"></div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" id="modal-cancel-btn" onclick="modal_cancel()">Hủy</button>
+      <button class="modal-btn modal-btn-ok"     onclick="modal_ok()">Tiếp tục</button>
+    </div>
+  </div>
+</div>
+
 <script>
+// ── Custom modal ─────────────────────────────────────────────────────────────
+var _modalOkFn, _modalCancelFn;
+
+function modal_show(title, msg, onOk, onCancel, showCancel) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-msg').textContent   = msg;
+  document.getElementById('modal-cancel-btn').style.display = showCancel === false ? 'none' : '';
+  _modalOkFn     = onOk     || null;
+  _modalCancelFn = onCancel || null;
+  document.getElementById('app-modal').classList.add('visible');
+}
+function modal_ok() {
+  document.getElementById('app-modal').classList.remove('visible');
+  if (_modalOkFn) _modalOkFn();
+}
+function modal_cancel() {
+  document.getElementById('app-modal').classList.remove('visible');
+  if (_modalCancelFn) _modalCancelFn();
+}
+
 // ── Navigation (screens) ────────────────────────────────────────────────────
 var currentScreen = 'home';
 
@@ -532,24 +592,30 @@ function bs_onList(result) {
     return;
   }
 
-  // Master warning: show popup nếu master sheet không tìm thấy
+  function bs_startProcessing() {
+    document.getElementById('bs-log').innerHTML = '';
+    bsIndex = 0;
+    bs_setState('running');
+    bs_updateProgress(0, bsBrands.length);
+    var existing = result.existingSheets;
+    if (existing.length > 0) {
+      bs_log('⚠ ' + existing.length + ' sheet sẽ được tạo lại: ' + existing.join(', '), 'log-warn');
+    }
+    bs_log('Tìm thấy ' + bsBrands.length + ' brand — bắt đầu xử lý...', 'log-info');
+    bs_next();
+  }
+
   if (result.masterWarning) {
-    alert('⚠ Master Record\n\n' + result.masterWarning + '\n\nSẽ dùng Default fee cho tất cả brand.');
+    modal_show(
+      '⚠ Master Record',
+      result.masterWarning + '\n\nSẽ dùng Default fee cho tất cả brand.',
+      function() { bs_startProcessing(); },
+      function() { bs_setState('idle'); bs_setLog('⛔ Đã huỷ — vui lòng cấu hình Master file trong Settings.', 'log-warn'); },
+      true
+    );
+  } else {
+    bs_startProcessing();
   }
-
-  document.getElementById('bs-log').innerHTML = '';
-  bsIndex = 0;
-  bs_setState('running');
-  bs_updateProgress(0, bsBrands.length);
-
-  // Thông báo sheet sẽ bị ghi đè (không block, tự proceed)
-  var existing = result.existingSheets;
-  if (existing.length > 0) {
-    bs_log('⚠ ' + existing.length + ' sheet sẽ được tạo lại: ' + existing.join(', '), 'log-warn');
-  }
-  bs_log('Tìm thấy ' + bsBrands.length + ' brand — bắt đầu xử lý...', 'log-info');
-
-  bs_next();
 }
 
 function bs_next() {
@@ -664,13 +730,20 @@ function cfg_save() {
 }
 
 function cfg_reset() {
-  if (!confirm('Reset tất cả settings về mặc định?')) return;
-  google.script.run
-    .withSuccessHandler(function() {
-      document.getElementById('cfg-status').textContent = '✅ Đã reset.';
-      cfg_load();
-    })
-    .resetSettings();
+  modal_show(
+    'Reset Settings',
+    'Reset tất cả settings về mặc định?',
+    function() {
+      google.script.run
+        .withSuccessHandler(function() {
+          document.getElementById('cfg-status').textContent = '✅ Đã reset.';
+          cfg_load();
+        })
+        .resetSettings();
+    },
+    null,
+    true
+  );
 }
 </script>
 </body>

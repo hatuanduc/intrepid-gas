@@ -21,7 +21,7 @@ function Orchestrator_getBrandList(url) {
     var data = SummaryReader_read(id, cfg);
 
     // Đọc fee map từ Master sheet
-    var masterResult = MasterReader_read(cfg);
+    var masterResult = MasterReader_read(data.ss, cfg);
     var feeMap = masterResult.map;
 
     // Cache parsed data để processOne dùng lại, tránh đọc SS nhiều lần
@@ -92,7 +92,7 @@ function Orchestrator_processOne(url, brand) {
       spendHeaders  = data.spendHeaders;
       natureHeaders = data.natureHeaders;
       dataRows      = data.dataRows;
-      feeMap        = MasterReader_read(cfg).map;
+      feeMap        = MasterReader_read(data.ss, cfg).map;
     }
 
     var extracted  = BrandExtractor_extract(dataRows, brand, cfg);

@@ -1,46 +1,52 @@
 // MasterReader.gs — đọc fee per brand từ Master sheet
 
 /**
- * Đọc Master sheet từ file riêng (masterSpreadsheetUrl) và trả về fee map.
- * Master và Summary là 2 file độc lập — không đọc chung.
+ * Đọc Master sheet và trả về fee map.
  *
- * Cell value có thể là:
- *   - Decimal: 0.09  (percentage-formatted cell trong GAS trả về decimal)
- *   - Integer: 9     (nhập tay dạng số nguyên)
- *   - String: "9%"   (trường hợp hiếm)
+ * Ưu tiên:
+ *   1. Nếu masterSpreadsheetUrl có → mở file đó
+ *   2. Nếu không có URL → tìm sheet trong cùng file Summary (ss)
+ *   3. Nếu không tìm thấy ở đâu → warning (cần setup)
  *
- * @param {Object} cfg  — từ Config_load(), cần cfg.masterSpreadsheetUrl
+ * @param {Spreadsheet} ss  — file Summary (fallback khi không có URL)
+ * @param {Object} cfg      — từ Config_load()
  * @returns {{ map: Object, ok: boolean, warning?: string }}
  */
-function MasterReader_read(cfg) {
-  // Master URL bắt buộc phải được cấu hình riêng — không đọc chung file Summary
-  if (!cfg.masterSpreadsheetUrl) {
-    return {
-      map: {},
-      ok: false,
-      warning: 'Chưa cấu hình Master file URL.\n\nVui lòng vào Settings → điền "Master file URL" để app lấy fee theo từng brand.\n\nHiện tại sẽ dùng Default fee cho tất cả brand.'
-    };
-  }
-
+function MasterReader_read(ss, cfg) {
   var masterSs;
-  try {
-    var masterId = Helpers_getSpreadsheetId(cfg.masterSpreadsheetUrl);
-    masterSs = SpreadsheetApp.openById(masterId);
-  } catch (e) {
-    return {
-      map: {},
-      ok: false,
-      warning: 'Không mở được Master file.\nURL: "' + cfg.masterSpreadsheetUrl + '"\nLỗi: ' + e.message + '\n\nVui lòng kiểm tra lại URL trong Settings.'
-    };
+
+  if (cfg.masterSpreadsheetUrl) {
+    // Ưu tiên 1: mở file riêng theo URL
+    try {
+      masterSs = SpreadsheetApp.openById(Helpers_getSpreadsheetId(cfg.masterSpreadsheetUrl));
+    } catch (e) {
+      return {
+        map: {},
+        ok: false,
+        warning: 'Không mở được Master file.\nURL: ' + cfg.masterSpreadsheetUrl + '\nLỗi: ' + e.message
+      };
+    }
+  } else {
+    // Ưu tiên 2: tìm trong cùng file Summary
+    masterSs = ss;
   }
 
   var sheet = masterSs.getSheetByName(cfg.masterSheetName);
   if (!sheet) {
-    return {
-      map: {},
-      ok: false,
-      warning: 'Không tìm thấy sheet "' + cfg.masterSheetName + '" trong Master file.\n\nVui lòng kiểm tra lại Master sheet name trong Settings.'
-    };
+    // Không tìm thấy ở đâu → cần setup
+    if (cfg.masterSpreadsheetUrl) {
+      return {
+        map: {},
+        ok: false,
+        warning: 'Không tìm thấy sheet "' + cfg.masterSheetName + '" trong Master file đã cấu hình.\nVui lòng kiểm tra lại Master sheet name trong Settings.'
+      };
+    } else {
+      return {
+        map: {},
+        ok: false,
+        warning: 'Không tìm thấy sheet "' + cfg.masterSheetName + '" trong file hiện tại, và chưa cấu hình Master file URL.\n\nVui lòng vào Settings để điền Master file URL hoặc kiểm tra tên sheet.'
+      };
+    }
   }
 
   var lastRow = sheet.getLastRow();
