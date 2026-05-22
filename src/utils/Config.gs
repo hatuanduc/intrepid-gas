@@ -1,22 +1,32 @@
 // Config.gs — load/save all user-configurable settings via PropertiesService
 
 var CONFIG_DEFAULTS = {
+  // ── Summary sheet ──────────────────────────────────────────────
   summarySheetName: 'Summary',
-  headerRow:        '5',   // dòng chứa header (Brand, Company Name, ...)
-  dataStartRow:     '6',   // dòng đầu tiên có data
-  colBrand:         '2',   // column B — Brand
-  colCompany:       '3',   // column C — Company Name → Customer Name in output F1
-  // brandFilterCol: cột dùng để lọc brand thật vs dòng header-nhóm (INT, Retails Model, ...)
-  // Nếu ô này TRỐNG thì bỏ qua dòng đó (không phải brand thật).
-  // Để trống (0) = dùng colBrand để kiểm tra (mặc định cũ).
-  brandFilterCol:   '3',   // column C — Company Name thường trống ở header-nhóm
-  colSummaryStart:  '31',  // column AE (brand summary, horizontal)
+  headerRow:        '5',
+  dataStartRow:     '6',
+  colBrand:         '2',   // column B
+  colCompany:       '3',   // column C → Customer Name (F1 trong output)
+  brandFilterCol:   '3',   // skip row nếu cột này trống (loại header nhóm)
+  colSummaryStart:  '31',  // column AE
   colSummaryEnd:    '44',  // column AR
-  colSpendStart:    '45',  // column AS (marketing spending)
+  colSpendStart:    '45',  // column AS
   colSpendEnd:      '64',  // column BL
-  feeNonTiktok:     '9',   // % stored as integer, e.g. 9 = 9%
-  feeTiktok:        '7',   // %
   tiktokKeywords:   'tiktok,tik tok',
+
+  // ── Master sheet — fee per brand ───────────────────────────────
+  // Nếu brand tìm thấy trong master → dùng fee của master
+  // Nếu không tìm thấy             → dùng defaultFeeNonTiktok / defaultFeeTiktok
+  masterSpreadsheetUrl:   '',    // URL file master (để trống = dùng chung file với Summary)
+  masterSheetName:        'Master record',
+  masterDataStartRow:     '2',   // dòng đầu tiên có data (bỏ qua header)
+  colMasterBrand:         '1',   // column A — Brand name
+  colMasterFeeNonTiktok:  '2',   // column B — Management fee (except tiktok)
+  colMasterFeeTiktok:     '3',   // column C — TikTok management fee
+
+  // ── Default fee (fallback khi brand không có trong master) ─────
+  defaultFeeNonTiktok: '9',   // 9%
+  defaultFeeTiktok:    '7',   // 7%
 };
 
 /**
@@ -36,9 +46,15 @@ function Config_load() {
     colSummaryEnd:    Number(raw.colSummaryEnd),
     colSpendStart:    Number(raw.colSpendStart),
     colSpendEnd:      Number(raw.colSpendEnd),
-    feeNonTiktok:     Number(raw.feeNonTiktok) / 100,
-    feeTiktok:        Number(raw.feeTiktok) / 100,
     tiktokKeywords:   raw.tiktokKeywords.split(',').map(function(s) { return s.trim().toLowerCase(); }),
+    masterSpreadsheetUrl:  raw.masterSpreadsheetUrl || '',
+    masterSheetName:       raw.masterSheetName,
+    masterDataStartRow:    Number(raw.masterDataStartRow),
+    colMasterBrand:        Number(raw.colMasterBrand),
+    colMasterFeeNonTiktok: Number(raw.colMasterFeeNonTiktok),
+    colMasterFeeTiktok:    Number(raw.colMasterFeeTiktok),
+    defaultFeeNonTiktok:   Number(raw.defaultFeeNonTiktok) / 100,
+    defaultFeeTiktok:      Number(raw.defaultFeeTiktok) / 100,
   };
 }
 

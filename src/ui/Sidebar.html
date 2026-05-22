@@ -303,17 +303,49 @@
 
       <hr class="divider">
 
+      <label>Master file URL</label>
+      <input type="text" id="cfg-masterSpreadsheetUrl" placeholder="https://docs.google.com/spreadsheets/d/... (để trống = dùng chung file Summary)">
+      <p class="hint">Để trống nếu Master record nằm trong cùng file với Summary.</p>
+
+      <label>Master sheet name</label>
+      <input type="text" id="cfg-masterSheetName" placeholder="Master record">
+      <p class="hint">Sheet chứa fee riêng cho từng brand. Nếu không tìm thấy → dùng default fee bên dưới.</p>
+
       <div class="row2">
         <div>
-          <label>Marketing mgmt fee — non-TikTok</label>
-          <input type="number" id="cfg-feeNonTiktok" placeholder="9" min="0" max="100">
+          <label>Master: data start row</label>
+          <input type="number" id="cfg-masterDataStartRow" placeholder="2" min="1">
         </div>
         <div>
-          <label>Marketing mgmt fee — TikTok</label>
-          <input type="number" id="cfg-feeTiktok" placeholder="7" min="0" max="100">
+          <label>Master: cột Brand (A=1)</label>
+          <input type="number" id="cfg-colMasterBrand" placeholder="1" min="1">
         </div>
       </div>
-      <p class="hint">Nhập số nguyên, ví dụ: 9 = 9% — dùng để tính "Marketing management fee = Tổng spending × %"</p>
+
+      <div class="row2">
+        <div>
+          <label>Master: cột fee non-TikTok (B=2)</label>
+          <input type="number" id="cfg-colMasterFeeNonTiktok" placeholder="2" min="1">
+        </div>
+        <div>
+          <label>Master: cột fee TikTok (C=3)</label>
+          <input type="number" id="cfg-colMasterFeeTiktok" placeholder="3" min="1">
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="row2">
+        <div>
+          <label>Default fee non-TikTok (%)</label>
+          <input type="number" id="cfg-defaultFeeNonTiktok" placeholder="9" min="0" max="100">
+        </div>
+        <div>
+          <label>Default fee TikTok (%)</label>
+          <input type="number" id="cfg-defaultFeeTiktok" placeholder="7" min="0" max="100">
+        </div>
+      </div>
+      <p class="hint">Fallback khi brand không có trong Master sheet. Ví dụ: 9 = 9%</p>
 
       <label>TikTok keywords (cách nhau bằng dấu phẩy)</label>
       <input type="text" id="cfg-tiktokKeywords" placeholder="tiktok,tik tok">
@@ -500,6 +532,11 @@ function bs_onList(result) {
     return;
   }
 
+  // Master warning: show popup nếu master sheet không tìm thấy
+  if (result.masterWarning) {
+    alert('⚠ Master Record\n\n' + result.masterWarning + '\n\nSẽ dùng Default fee cho tất cả brand.');
+  }
+
   document.getElementById('bs-log').innerHTML = '';
   bsIndex = 0;
   bs_setState('running');
@@ -592,7 +629,10 @@ var CFG_KEYS = [
   'colBrand','colCompany','brandFilterCol',
   'colSummaryStart','colSummaryEnd',
   'colSpendStart','colSpendEnd',
-  'feeNonTiktok','feeTiktok','tiktokKeywords'
+  'tiktokKeywords',
+  'masterSpreadsheetUrl','masterSheetName','masterDataStartRow',
+  'colMasterBrand','colMasterFeeNonTiktok','colMasterFeeTiktok',
+  'defaultFeeNonTiktok','defaultFeeTiktok'
 ];
 
 function cfg_load() {

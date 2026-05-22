@@ -20,15 +20,19 @@ function Orchestrator_getBrandList(url) {
     var id   = Helpers_getSpreadsheetId(url);
     var data = SummaryReader_read(id, cfg);
 
+    // Đọc fee map từ Master sheet
+    var masterResult = MasterReader_read(cfg);
+    var feeMap = masterResult.map;
+
     // Cache parsed data để processOne dùng lại, tránh đọc SS nhiều lần
     var cachePayload = JSON.stringify({
       spendHeaders:  data.spendHeaders,
       natureHeaders: data.natureHeaders,
+      feeMap:        feeMap,
       dataRows: data.dataRows.map(function(r) {
         return {
           brand: r.brand,
           data:  r.data.map(function(cell) {
-            // Serialize Date thành chuỗi để JSON an toàn
             return (cell instanceof Date) ? cell.toISOString() : cell;
           })
         };
@@ -42,7 +46,12 @@ function Orchestrator_getBrandList(url) {
       return ss.getSheetByName(brand) !== null;
     });
 
-    return { ok: true, brands: data.brands, existingSheets: existingSheets };
+    return {
+      ok: true,
+      brands:        data.brands,
+      existingSheets: existingSheets,
+      masterWarning: masterResult.ok ? null : masterResult.warning,
+    };
 
   } catch (e) {
     Logger.log('getBrandList error: ' + e.message + '\n' + e.stack);
@@ -70,10 +79,12 @@ function Orchestrator_processOne(url, brand) {
     var spendHeaders, natureHeaders, dataRows;
     var cached = CacheService.getScriptCache().get(CACHE_KEY_PREFIX + id);
 
+    var feeMap;
     if (cached) {
       var c    = JSON.parse(cached);
       spendHeaders  = c.spendHeaders;
       natureHeaders = c.natureHeaders;
+      feeMap        = c.feeMap || {};
       dataRows      = c.dataRows;
     } else {
       // Cache hết hạn → đọc lại
@@ -81,10 +92,12 @@ function Orchestrator_processOne(url, brand) {
       spendHeaders  = data.spendHeaders;
       natureHeaders = data.natureHeaders;
       dataRows      = data.dataRows;
+      feeMap        = MasterReader_read(cfg).map;
     }
 
-    var extracted = BrandExtractor_extract(dataRows, brand, cfg);
-    SheetBuilder_build(ss, brand, extracted.companyName, extracted.rows, spendHeaders, natureHeaders, cfg);
+    var extracted  = BrandExtractor_extract(dataRows, brand, cfg);
+    var brandFees  = MasterReader_getFee(feeMap, brand, cfg);
+    SheetBuilder_build(ss, brand, extracted.companyName, extracted.rows, spendHeaders, natureHeaders, cfg, brandFees);
 
     return { ok: true };
 

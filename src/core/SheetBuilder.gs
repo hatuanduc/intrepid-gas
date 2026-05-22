@@ -18,7 +18,7 @@ var COLOR_TITLE  = '#FFFFFF'; // title row background
  * @param {Object} cfg
  * @returns {Sheet}
  */
-function SheetBuilder_build(ss, brandName, companyName, brandRows, spendHeaders, natureHeaders, cfg) {
+function SheetBuilder_build(ss, brandName, companyName, brandRows, spendHeaders, natureHeaders, cfg, brandFees) {
   var sheet = ss.getSheetByName(brandName);
   if (sheet) {
     sheet.clear();
@@ -36,10 +36,13 @@ function SheetBuilder_build(ss, brandName, companyName, brandRows, spendHeaders,
 
   var currentRow = 1;
 
+  // Lấy fee từ brandFees (master) hoặc fallback về cfg default
+  var fees = brandFees || { feeNonTiktok: cfg.defaultFeeNonTiktok, feeTiktok: cfg.defaultFeeTiktok };
+
   // Block 1: non-TikTok spending
   currentRow = SheetBuilder_buildSpendingBlock(
     sheet, currentRow, companyName, brandRows, nonTiktokCols,
-    cfg.feeNonTiktok, true   // showMainTitle
+    fees.feeNonTiktok, true   // showMainTitle
   );
 
   currentRow++; // blank row giữa 2 block
@@ -47,7 +50,7 @@ function SheetBuilder_build(ss, brandName, companyName, brandRows, spendHeaders,
   // Block 2: TikTok only
   currentRow = SheetBuilder_buildSpendingBlock(
     sheet, currentRow, null, brandRows, tiktokCols,
-    cfg.feeTiktok, false     // không lặp lại main title
+    fees.feeTiktok, false     // không lặp lại main title
   );
 
   currentRow++; // blank row
