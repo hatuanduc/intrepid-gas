@@ -52,11 +52,15 @@ function SummaryReader_read(spreadsheetId, cfg) {
   }
 
   // --- Đọc data rows từ dataStartRow ---
+  // brandFilterCol > 0: chỉ lấy row khi cột đó không trống
+  // (dùng để bỏ qua các dòng header-nhóm như "INT", "Retails Model")
+  var filterCol = cfg.brandFilterCol > 0 ? cfg.brandFilterCol : cfg.colBrand;
   var dataRows = [];
   for (var r = cfg.dataStartRow; r <= lastRow; r++) {
     var rowData = allData[r - 1];
     var brand = String(rowData[cfg.colBrand - 1] || '').trim();
-    if (brand) {
+    var filterVal = String(rowData[filterCol - 1] || '').trim();
+    if (brand && filterVal) {
       dataRows.push({ brand: brand, data: rowData });
     }
   }

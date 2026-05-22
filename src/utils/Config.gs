@@ -2,10 +2,14 @@
 
 var CONFIG_DEFAULTS = {
   summarySheetName: 'Summary',
-  headerRow:        '4',
-  dataStartRow:     '5',
-  colBrand:         '2',   // column B
+  headerRow:        '5',   // dòng chứa header (Brand, Company Name, ...)
+  dataStartRow:     '6',   // dòng đầu tiên có data
+  colBrand:         '5',   // column E — Brand
   colCompany:       '3',   // column C — Company Name → Customer Name in output F1
+  // brandFilterCol: cột dùng để lọc brand thật vs dòng header-nhóm (INT, Retails Model, ...)
+  // Nếu ô này TRỐNG thì bỏ qua dòng đó (không phải brand thật).
+  // Để trống (0) = dùng colBrand để kiểm tra (mặc định cũ).
+  brandFilterCol:   '3',   // column C — Company Name thường trống ở header-nhóm
   colSummaryStart:  '31',  // column AE (brand summary, horizontal)
   colSummaryEnd:    '44',  // column AR
   colSpendStart:    '45',  // column AS (marketing spending)
@@ -27,6 +31,7 @@ function Config_load() {
     dataStartRow:     Number(raw.dataStartRow),
     colBrand:         Number(raw.colBrand),
     colCompany:       Number(raw.colCompany),
+    brandFilterCol:   Number(raw.brandFilterCol),
     colSummaryStart:  Number(raw.colSummaryStart),
     colSummaryEnd:    Number(raw.colSummaryEnd),
     colSpendStart:    Number(raw.colSpendStart),

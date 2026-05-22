@@ -182,14 +182,18 @@
 
   <div class="row2">
     <div>
-      <label>Cột Brand (B=2)</label>
-      <input type="number" id="cfg-colBrand" placeholder="2" min="1">
+      <label>Cột Brand (E=5)</label>
+      <input type="number" id="cfg-colBrand" placeholder="5" min="1">
     </div>
     <div>
       <label>Cột Company (C=3)</label>
       <input type="number" id="cfg-colCompany" placeholder="3" min="1">
     </div>
   </div>
+
+  <label>Cột lọc brand thật (brandFilterCol)</label>
+  <input type="number" id="cfg-brandFilterCol" placeholder="3" min="0">
+  <p class="hint">Dòng nào có cột này TRỐNG sẽ bị bỏ qua (dành cho header-nhóm như "INT", "Retails Model"). Đặt 0 để dùng cột Brand làm filter.</p>
 
   <div class="row2">
     <div>
@@ -311,7 +315,7 @@
   function saveConfig() {
     var keys = [
       'summarySheetName','headerRow','dataStartRow',
-      'colBrand','colCompany',
+      'colBrand','colCompany','brandFilterCol',
       'colSummaryStart','colSummaryEnd',
       'colSpendStart','colSpendEnd',
       'feeNonTiktok','feeTiktok','tiktokKeywords'
