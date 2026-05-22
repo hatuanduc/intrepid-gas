@@ -23,8 +23,12 @@ function SheetBuilder_build(ss, brandName, companyName, brandRows, spendHeaders,
   if (sheet) {
     sheet.clear();
     sheet.clearFormats();
+    // Move sheet cũ về cuối để đúng thứ tự xử lý
+    ss.setActiveSheet(sheet);
+    ss.moveActiveSheet(ss.getSheets().length);
   } else {
-    sheet = ss.insertSheet(brandName);
+    // Sheet mới luôn thêm vào cuối
+    sheet = ss.insertSheet(brandName, ss.getSheets().length);
   }
 
   var nonTiktokCols = spendHeaders.filter(function(h) { return !h.isTiktok; });
