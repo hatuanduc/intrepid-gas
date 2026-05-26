@@ -213,10 +213,14 @@
       <div class="feature-arrow">›</div>
     </div>
 
-    <!--
-      Thêm feature mới: copy .feature-card ở trên,
-      đổi onclick="nav('ten-feature')" và tạo SCREEN tương ứng bên dưới.
-    -->
+    <div class="feature-card" onclick="nav('drive-files')">
+      <div class="feature-icon">📁</div>
+      <div class="feature-info">
+        <div class="feature-title">Drive Files</div>
+        <div class="feature-desc">List toàn bộ file trong Google Drive folder vào sheet</div>
+      </div>
+      <div class="feature-arrow">›</div>
+    </div>
 
   </div>
 </div>
@@ -388,24 +392,88 @@
   </div><!-- /scrollable -->
 </div><!-- /screen-brand-split -->
 
-<!--
-  TEMPLATE cho feature mới:
+<!-- ══════════════════════════════════════════ -->
+<!-- SCREEN: Drive Files                        -->
+<!-- ══════════════════════════════════════════ -->
+<div id="screen-drive-files" class="screen">
 
-  <div id="screen-ten-feature" class="screen">
-    <div class="screen-nav">
-      <button class="btn-back" onclick="nav('home')">‹</button>
-      <span class="screen-nav-title">Tên Feature</span>
-    </div>
-    <div class="sub-tab-bar">
-      <button class="sub-tab active" onclick="xxTab('run', this)">Xử lý</button>
-      <button class="sub-tab"        onclick="xxTab('settings', this)">Settings</button>
-    </div>
-    <div style="flex:1; overflow-y:auto;">
-      <div id="xx-pane-run"      class="sub-pane active"> ... </div>
-      <div id="xx-pane-settings" class="sub-pane">        ... </div>
-    </div>
+  <div class="screen-nav">
+    <button class="btn-back" onclick="nav('home')">‹</button>
+    <span class="screen-nav-title">Drive Files</span>
   </div>
--->
+
+  <div class="sub-tab-bar">
+    <button class="sub-tab active" onclick="dfTab('run', this)">Xử lý</button>
+    <button class="sub-tab"        onclick="dfTab('settings', this)">Settings</button>
+  </div>
+
+  <div style="flex:1; overflow-y:auto;">
+
+    <!-- Sub-pane: Xử lý -->
+    <div id="df-pane-run" class="sub-pane active">
+
+      <label>Spreadsheet URL (đích)</label>
+      <input type="text" id="df-sheet-url" placeholder="https://docs.google.com/spreadsheets/d/..."
+             oninput="df_onSheetUrlChange()">
+      <div id="df-sheet-hint" class="hint">Nếu URL có chứa <code style="font-size:11px">#gid=...</code> sẽ tự nhận sheet đó.</div>
+
+      <div id="df-sheet-name-wrap">
+        <label>Sheet tab name</label>
+        <input type="text" id="df-sheet-name" placeholder="Drive Files">
+        <p id="df-sheet-name-hint" class="hint">Tên tab trong spreadsheet đích. Sẽ tạo mới nếu chưa có.</p>
+      </div>
+
+      <label>Folder URL</label>
+      <input type="text" id="df-folder-url" placeholder="https://drive.google.com/drive/folders/...">
+      <p class="hint">Link folder Google Drive cần list. Sẽ đệ quy tất cả subfolder.</p>
+
+      <!-- Controls -->
+      <div class="ctrl-bar" style="margin-top:10px;">
+        <button class="btn btn-primary" id="df-btn-run"     onclick="df_start(false)">List Files</button>
+        <button class="btn btn-restart hidden" id="df-btn-resume"  onclick="df_start(true)">▶ Tiếp tục</button>
+        <button class="btn btn-stop   hidden" id="df-btn-clear"   onclick="df_clearResume()">✕ Bỏ qua</button>
+      </div>
+
+      <div class="log-label">Log</div>
+      <div class="log-box" id="df-log">
+        <span class="log-info">Sẵn sàng.</span>
+      </div>
+
+    </div>
+
+    <!-- Sub-pane: Settings -->
+    <div id="df-pane-settings" class="sub-pane">
+
+      <label>Chỉ lấy MIME type (để trống = tất cả loại file)</label>
+      <input type="text" id="df-cfg-dfMimeTypes" placeholder="application/pdf,image/jpeg,...">
+      <p class="hint">Để trống = lấy tất cả. Ví dụ chỉ lấy PDF: <code style="font-size:11px">application/pdf</code></p>
+
+      <label>Chỉ file sửa sau ngày (YYYY-MM-DD, để trống = không lọc)</label>
+      <input type="text" id="df-cfg-dfModifiedAfter" placeholder="2024-01-01">
+
+      <hr class="divider">
+
+      <label style="text-transform:none; font-size:12px; font-weight:600; letter-spacing:0; margin-top:0;">
+        <input type="checkbox" id="df-cfg-dfIncludeLastUser"> Lấy thông tin người sửa cuối
+      </label>
+      <label style="text-transform:none; font-size:12px; font-weight:600; letter-spacing:0;">
+        <input type="checkbox" id="df-cfg-dfIncludeDesc"> Lấy File Description
+      </label>
+      <label style="text-transform:none; font-size:12px; font-weight:600; letter-spacing:0;">
+        <input type="checkbox" id="df-cfg-dfDoColor"> Tô màu xen kẽ theo folder
+      </label>
+      <label style="text-transform:none; font-size:12px; font-weight:600; letter-spacing:0;">
+        <input type="checkbox" id="df-cfg-dfAutoResize"> Auto-resize cột
+      </label>
+
+      <button class="btn btn-primary" onclick="df_saveSettings()" style="margin-top:14px;">Lưu Settings</button>
+      <button class="btn btn-ghost"   onclick="df_resetSettings()">Reset về mặc định</button>
+      <div id="df-cfg-status" style="margin-top:8px; font-size:12px;"></div>
+
+    </div><!-- /df-pane-settings -->
+
+  </div><!-- /scrollable -->
+</div><!-- /screen-drive-files -->
 
 <!-- ── Custom modal ──────────────────────────────────────────────────────── -->
 <div id="app-modal" class="modal-overlay">
@@ -451,8 +519,8 @@ function nav(screenName) {
   var body = next.querySelector('[style*="overflow-y"]') || next.querySelector('.screen-body');
   if (body) body.scrollTop = 0;
   currentScreen = screenName;
-  // Load settings khi vào Brand Split
   if (screenName === 'brand-split') cfg_load();
+  if (screenName === 'drive-files') df_loadSettings();
 }
 
 // ── Sub-tabs (Brand Split) ──────────────────────────────────────────────────
@@ -744,6 +812,203 @@ function cfg_reset() {
     null,
     true
   );
+}
+
+// ── Drive Files ──────────────────────────────────────────────────────────────
+
+function dfTab(name, btn) {
+  document.querySelectorAll('#screen-drive-files .sub-tab').forEach(function(b) { b.classList.remove('active'); });
+  document.querySelectorAll('#screen-drive-files .sub-pane').forEach(function(p) { p.classList.remove('active'); });
+  btn.classList.add('active');
+  document.getElementById('df-pane-' + name).classList.add('active');
+}
+
+var _dfSheetUrlTimer = null;
+function df_onSheetUrlChange() {
+  clearTimeout(_dfSheetUrlTimer);
+  _dfSheetUrlTimer = setTimeout(function() {
+    var url = document.getElementById('df-sheet-url').value.trim();
+    if (!url) return;
+    // Check if URL has a GID — if so, auto-resolve sheet name
+    var hasGid = /[#&?]gid=\d+/.test(url);
+    if (!hasGid) {
+      // No GID: show manual input, clear any previous detection
+      _dfDetectedSheet = null;
+      df_setSheetNameMode('manual');
+      return;
+    }
+    google.script.run
+      .withSuccessHandler(function(r) {
+        if (r.found) {
+          _dfDetectedSheet = r.sheetName;
+          df_setSheetNameMode('auto', r.sheetName);
+        } else {
+          _dfDetectedSheet = null;
+          df_setSheetNameMode('manual');
+        }
+      })
+      .DriveFiles_resolveSheetName(url);
+  }, 600);
+}
+
+function df_setSheetNameMode(mode, sheetName) {
+  var wrap = document.getElementById('df-sheet-name-wrap');
+  var hint = document.getElementById('df-sheet-hint');
+  var input = document.getElementById('df-sheet-name');
+  if (mode === 'auto') {
+    wrap.style.display = 'none';
+    hint.innerHTML = '✅ Sheet tự nhận: <strong>' + sheetName + '</strong>';
+  } else {
+    wrap.style.display = '';
+    hint.innerHTML = 'Không tìm thấy sheet từ URL — vui lòng nhập tên sheet bên dưới.';
+    input.value = '';
+  }
+}
+
+function df_start(resume) {
+  var sheetUrl   = document.getElementById('df-sheet-url').value.trim();
+  var folderUrl  = document.getElementById('df-folder-url').value.trim();
+  if (!sheetUrl)  { df_setLog('Vui lòng nhập Spreadsheet URL.', 'log-err'); return; }
+  if (!folderUrl) { df_setLog('Vui lòng nhập Folder URL.', 'log-err'); return; }
+
+  // Resolve sheet name: auto-detected > manual input > empty (server will use default)
+  var sheetName = _dfDetectedSheet || document.getElementById('df-sheet-name').value.trim() || '';
+
+  document.getElementById('df-btn-run').disabled = true;
+  document.getElementById('df-btn-run').textContent = 'Đang xử lý...';
+  document.getElementById('df-btn-resume').classList.add('hidden');
+  document.getElementById('df-btn-clear').classList.add('hidden');
+
+  if (resume) {
+    df_setLog('▶ Đang tiếp tục từ lần chạy trước...', 'log-info');
+  } else {
+    df_setLog('⏳ Đang list files' + (sheetName ? ' → sheet "' + sheetName + '"' : '') + ' (có thể mất vài phút nếu folder lớn)...', 'log-info');
+  }
+
+  google.script.run
+    .withSuccessHandler(function(r) {
+      document.getElementById('df-btn-run').disabled = false;
+      document.getElementById('df-btn-run').textContent = 'List Files';
+      if (!r.ok) {
+        if (r.authRequired) { df_showAuthPrompt(r.authUrl); return; }
+        df_setLog('❌ ' + r.error, 'log-err');
+        return;
+      }
+      if (r.timedOut) {
+        df_log('⚠ Hết thời gian — đã lấy ' + r.rowCount + ' file(s). Bấm "Tiếp tục" để chạy thêm.', 'log-warn');
+        document.getElementById('df-btn-resume').classList.remove('hidden');
+        document.getElementById('df-btn-clear').classList.remove('hidden');
+      } else {
+        df_log('✅ Hoàn tất trong ' + r.elapsed + 's — ' + r.rowCount + ' file(s).', 'log-ok');
+      }
+    })
+    .withFailureHandler(function(err) {
+      document.getElementById('df-btn-run').disabled = false;
+      document.getElementById('df-btn-run').textContent = 'List Files';
+      df_setLog('❌ ' + err.message, 'log-err');
+    })
+    .DriveFiles_run(sheetUrl, folderUrl, sheetName, !!resume);
+}
+
+function df_clearResume() {
+  var folderUrl = document.getElementById('df-folder-url').value.trim();
+  google.script.run.DriveFiles_clearResume(folderUrl);
+  document.getElementById('df-btn-resume').classList.add('hidden');
+  document.getElementById('df-btn-clear').classList.add('hidden');
+  df_log('Resume state đã xóa.', 'log-info');
+}
+
+var DF_BOOL_KEYS = ['dfIncludeLastUser', 'dfIncludeDesc', 'dfDoColor', 'dfAutoResize'];
+var DF_TEXT_KEYS = ['dfMimeTypes', 'dfModifiedAfter'];
+var _dfDetectedSheet = null; // sheet name auto-detected from GID
+
+function df_loadSettings() {
+  // Check auth status first
+  google.script.run
+    .withSuccessHandler(function(auth) {
+      if (!auth.ok && auth.authRequired) {
+        df_showAuthPrompt(auth.authUrl);
+      }
+    })
+    .DriveFiles_checkAuth();
+
+  google.script.run
+    .withSuccessHandler(function(raw) {
+      DF_TEXT_KEYS.forEach(function(k) {
+        var el = document.getElementById('df-cfg-' + k);
+        if (el && raw[k] !== undefined) el.value = raw[k];
+      });
+      DF_BOOL_KEYS.forEach(function(k) {
+        var el = document.getElementById('df-cfg-' + k);
+        if (el) el.checked = (raw[k] === 'true');
+      });
+      // Check resume state for the current folder URL
+      var folderUrl = document.getElementById('df-folder-url').value.trim();
+      if (folderUrl) df_checkResume(folderUrl);
+    })
+    .DriveFiles_loadSettings();
+}
+
+function df_showAuthPrompt(authUrl) {
+  var log = document.getElementById('df-log');
+  log.innerHTML =
+    '<div class="log-warn">🔑 Cần cấp quyền Drive trước khi chạy.</div>' +
+    '<div style="margin-top:6px;">' +
+    '<a href="' + authUrl + '" target="_blank" ' +
+    'style="display:inline-block;padding:7px 14px;background:#1a73e8;color:white;' +
+    'border-radius:4px;font-size:12px;font-weight:600;text-decoration:none;">' +
+    '🔓 Authorize Drive Access</a></div>' +
+    '<div class="log-info" style="margin-top:8px;">Sau khi authorize xong, quay lại đây và bấm List Files.</div>';
+}
+
+function df_checkResume(folderUrl) {
+  google.script.run
+    .withSuccessHandler(function(info) {
+      if (info && info.hasResume) {
+        document.getElementById('df-btn-resume').classList.remove('hidden');
+        document.getElementById('df-btn-clear').classList.remove('hidden');
+        df_log('⚠ Còn resume từ lần trước (' + info.rowCount + ' dòng đã lấy). Bấm "Tiếp tục" hoặc "✕ Bỏ qua".', 'log-warn');
+      }
+    })
+    .DriveFiles_checkResume(folderUrl);
+}
+
+function df_saveSettings() {
+  var settings = {};
+  DF_TEXT_KEYS.forEach(function(k) {
+    var el = document.getElementById('df-cfg-' + k);
+    if (el) settings[k] = el.value.trim();
+  });
+  DF_BOOL_KEYS.forEach(function(k) {
+    var el = document.getElementById('df-cfg-' + k);
+    if (el) settings[k] = el.checked ? 'true' : 'false';
+  });
+  document.getElementById('df-cfg-status').textContent = 'Đang lưu...';
+  google.script.run
+    .withSuccessHandler(function() { document.getElementById('df-cfg-status').textContent = '✅ Đã lưu.'; })
+    .withFailureHandler(function(err) { document.getElementById('df-cfg-status').textContent = '❌ ' + err.message; })
+    .DriveFiles_saveSettings(settings);
+}
+
+function df_resetSettings() {
+  modal_show('Reset Settings', 'Reset Drive Files settings về mặc định?', function() {
+    google.script.run
+      .withSuccessHandler(function() {
+        document.getElementById('df-cfg-status').textContent = '✅ Đã reset.';
+        df_loadSettings();
+      })
+      .DriveFiles_resetSettings();
+  }, null, true);
+}
+
+function df_setLog(msg, cls) {
+  document.getElementById('df-log').innerHTML = '<span class="' + (cls || '') + '">' + msg + '</span>';
+}
+function df_log(msg, cls) {
+  var div = document.createElement('div');
+  div.className = cls || ''; div.textContent = msg;
+  document.getElementById('df-log').appendChild(div);
+  document.getElementById('df-log').scrollTop = 9999;
 }
 </script>
 </body>
