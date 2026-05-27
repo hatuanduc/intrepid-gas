@@ -157,7 +157,7 @@ intrepid-gas/
     │   └── SheetBuilder.gs
     ├── features/
     │   └── BrandSplit.gs
-    └── utils/
+    └── utils/`
         ├── Config.gs         # đọc/ghi PropertiesService
         └── Helpers.gs
 ```

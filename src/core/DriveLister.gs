@@ -520,19 +520,20 @@ function DL_toMB_(b) { return b ? Math.round(Number(b) / (1024 * 1024) * 10) / 1
 // Resume state (per folder, in ScriptProperties)
 // ---------------------------------------------------------------------------
 
+// Resume state dùng getUserProperties() để mỗi user có state riêng, tránh conflict khi chạy đồng thời.
 function DL_resumeSave_(key, folderId, chunkIndex, writeRow) {
-  PropertiesService.getScriptProperties().setProperty(
+  PropertiesService.getUserProperties().setProperty(
     key, JSON.stringify({ folderId: folderId, chunkIndex: chunkIndex, writeRow: writeRow })
   );
 }
 
 function DL_resumeLoad_(key) {
   try {
-    var v = PropertiesService.getScriptProperties().getProperty(key);
+    var v = PropertiesService.getUserProperties().getProperty(key);
     return v ? JSON.parse(v) : null;
   } catch (e) { return null; }
 }
 
 function DL_resumeClear_(key) {
-  PropertiesService.getScriptProperties().deleteProperty(key);
+  PropertiesService.getUserProperties().deleteProperty(key);
 }

@@ -149,12 +149,12 @@ function DriveFiles_saveSettings(settings) {
       toSave[key] = String(settings[key]);
     }
   }
-  PropertiesService.getScriptProperties().setProperties(toSave);
+  PropertiesService.getUserProperties().setProperties(toSave);
 }
 
 function DriveFiles_resetSettings() {
   for (var key in DF_CFG_DEFAULTS) {
-    PropertiesService.getScriptProperties().deleteProperty(key);
+    PropertiesService.getUserProperties().deleteProperty(key);
   }
 }
 
@@ -163,7 +163,7 @@ function DriveFiles_resetSettings() {
 // ---------------------------------------------------------------------------
 
 function DF_loadRaw_() {
-  var props = PropertiesService.getScriptProperties().getProperties();
+  var props = PropertiesService.getUserProperties().getProperties();
   var raw = {};
   for (var key in DF_CFG_DEFAULTS) {
     raw[key] = (props[key] !== undefined && props[key] !== '') ? props[key] : DF_CFG_DEFAULTS[key];

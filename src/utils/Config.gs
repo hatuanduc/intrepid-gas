@@ -63,7 +63,7 @@ function Config_load() {
  * @returns {Object} raw string config
  */
 function Config_loadRaw() {
-  var props = PropertiesService.getScriptProperties().getProperties();
+  var props = PropertiesService.getUserProperties().getProperties();
   var raw = {};
   for (var key in CONFIG_DEFAULTS) {
     raw[key] = (props[key] !== undefined && props[key] !== '') ? props[key] : CONFIG_DEFAULTS[key];
@@ -82,12 +82,15 @@ function Config_save(settings) {
       toSave[key] = String(settings[key]);
     }
   }
-  PropertiesService.getScriptProperties().setProperties(toSave);
+  PropertiesService.getUserProperties().setProperties(toSave);
 }
 
 /**
  * Reset all settings to defaults.
  */
 function Config_reset() {
-  PropertiesService.getScriptProperties().deleteAllProperties();
+  var props = PropertiesService.getUserProperties();
+  for (var key in CONFIG_DEFAULTS) {
+    props.deleteProperty(key);
+  }
 }
